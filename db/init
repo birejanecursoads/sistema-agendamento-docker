@@ -1,0 +1,44 @@
+CREATE TABLE IF NOT EXISTS profissionais (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    especialidade VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS datas_disponiveis (
+    id SERIAL PRIMARY KEY,
+    profissional_id INT NOT NULL,
+    data_disponivel DATE NOT NULL,
+    FOREIGN KEY (profissional_id) REFERENCES profissionais(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS agendamentos (
+    id SERIAL PRIMARY KEY,
+    nome_paciente VARCHAR(150) NOT NULL,
+    cpf VARCHAR(14) NOT NULL,
+    profissional_id INT NOT NULL,
+    data_agendamento DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (profissional_id) REFERENCES profissionais(id) ON DELETE CASCADE
+);
+
+INSERT INTO profissionais (id, nome, especialidade) VALUES
+(1, 'Dra. Mariana Costa', 'Clínica Geral'),
+(2, 'Dr. Rafael Mendes', 'Cardiologia'),
+(3, 'Fernanda Lima', 'Nutrição'),
+(4, 'Dr. Carlos Henrique', 'Pediatria')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO datas_disponiveis (profissional_id, data_disponivel) VALUES
+(1, '2026-04-22'),
+(1, '2026-04-23'),
+(1, '2026-04-25'),
+(2, '2026-04-24'),
+(2, '2026-04-26'),
+(2, '2026-04-28'),
+(3, '2026-04-21'),
+(3, '2026-04-23'),
+(3, '2026-04-27'),
+(4, '2026-04-22'),
+(4, '2026-04-24'),
+(4, '2026-04-29')
+ON CONFLICT DO NOTHING;
