@@ -47,19 +47,37 @@ especialidadeSelect.addEventListener("change", () => {
   });
 });
 
-profissionalSelect.addEventListener("change", () => {
+profissionalSelect.addEventListener("change", async () => {
   dataSelect.innerHTML = '<option value="">Selecione</option>';
 
-  const profissionalId = Number(profissionalSelect.value);
-  const profissional = profissionais.find((p) => p.id === profissionalId);
+  const profissionalId = profissionalSelect.value;
+  if (!profissionalId) return;
 
-  if (profissional) {
-    profissional.datasDisponiveis.forEach((data) => {
+  try {
+    const resposta = await fetch(`/api/profissionais/${profissionalId}/datas`);
+    const datas = await resposta.json();
+
+    console.log("Datas recebidas:", datas);
+
+    if (!Array.isArray(datas)) {
+      console.error("Resposta inválida da API:", datas);
+      return;
+    }
+
+    datas.forEach((dataIso) => {
+      const dataObj = new Date(dataIso);
+
+      const dataFormatada = dataObj.toLocaleDateString("pt-BR", {
+        timeZone: "UTC"
+      });
+
       const option = document.createElement("option");
-      option.value = data;
-      option.textContent = data;
+      option.value = dataIso;
+      option.textContent = dataFormatada;
       dataSelect.appendChild(option);
     });
+  } catch (erro) {
+    console.error("Erro ao carregar datas:", erro);
   }
 });
 
