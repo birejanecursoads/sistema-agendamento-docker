@@ -13,12 +13,74 @@ const pool = new Pool({
   port: Number(process.env.DB_PORT),
   database: process.env.DB_NAME,
   user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD
+  password: process.env.DB_PASSWORD,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+
+async function inicializarBanco() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS profissionais (
+      id SERIAL PRIMARY KEY,
+      nome VARCHAR(150) NOT NULL,
+      especialidade VARCHAR(100) NOT NULL
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS datas_disponiveis (
+      id SERIAL PRIMARY KEY,
+      profissional_id INT NOT NULL,
+      data_disponivel DATE NOT NULL,
+      FOREIGN KEY (profissional_id) REFERENCES profissionais(id) ON DELETE CASCADE
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS agendamentos (
+      id SERIAL PRIMARY KEY,
+      nome_paciente VARCHAR(150) NOT NULL,
+      cpf VARCHAR(14) NOT NULL,
+      profissional_id INT NOT NULL,
+      data_agendamento DATE NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (profissional_id) REFERENCES profissionais(id) ON DELETE CASCADE
+    );
+  `);
+
+  await pool.query(`
+    INSERT INTO profissionais (id, nome, especialidade) VALUES
+      (1, 'Dra. Mariana Costa', 'Clínica Geral'),
+      (2, 'Dr. Rafael Mendes', 'Cardiologia'),
+      (3, 'Fernanda Lima', 'Nutrição'),
+      (4, 'Dr. Carlos Henrique', 'Pediatria')
+    ON CONFLICT (id) DO NOTHING;
+  `);
+
+  await pool.query(`
+    INSERT INTO datas_disponiveis (profissional_id, data_disponivel) VALUES
+      (1, '2026-04-22'),
+      (1, '2026-04-23'),
+      (1, '2026-04-25'),
+      (2, '2026-04-24'),
+      (2, '2026-04-26'),
+      (2, '2026-04-28'),
+      (3, '2026-04-21'),
+      (3, '2026-04-23'),
+      (3, '2026-04-27'),
+      (4, '2026-04-22'),
+      (4, '2026-04-24'),
+      (4, '2026-04-29')
+    ON CONFLICT DO NOTHING;
+  `);
+
+  console.log("Banco inicializado com sucesso.");
+}
 
 app.get("/api", (req, res) => {
   res.json({ mensagem: "API do Sistema de Agendamento com PostgreSQL e Docker" });
@@ -211,6 +273,15 @@ app.delete("/api/agendamentos/:id", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
-});
+async function iniciarServidor() {
+  try {
+    await inicializarBanco();
+    app.listen(PORT, () => {
+      console.log(`Servidor rodando em http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error("Erro ao iniciar aplicação:", error);
+  }
+}
+
+iniciarServidor();
