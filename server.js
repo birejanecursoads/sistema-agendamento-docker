@@ -62,21 +62,29 @@ async function inicializarBanco() {
     ON CONFLICT (id) DO NOTHING;
   `);
 
-  await pool.query(`
-    INSERT INTO datas_disponiveis (profissional_id, data_disponivel) VALUES
-      (1, '2026-04-22'),
-      (1, '2026-04-23'),
-      (1, '2026-04-25'),
-      (2, '2026-04-24'),
-      (2, '2026-04-26'),
-      (2, '2026-04-28'),
-      (3, '2026-04-21'),
-      (3, '2026-04-23'),
-      (3, '2026-04-27'),
-      (4, '2026-04-22'),
-      (4, '2026-04-24'),
-      (4, '2026-04-29')
-    ON CONFLICT DO NOTHING;
+    await pool.query(`
+    INSERT INTO datas_disponiveis (profissional_id, data_disponivel)
+    SELECT * FROM (
+      VALUES
+        (1, '2026-04-22'::date),
+        (1, '2026-04-23'::date),
+        (1, '2026-04-25'::date),
+        (2, '2026-04-24'::date),
+        (2, '2026-04-26'::date),
+        (2, '2026-04-28'::date),
+        (3, '2026-04-21'::date),
+        (3, '2026-04-23'::date),
+        (3, '2026-04-27'::date),
+        (4, '2026-04-22'::date),
+        (4, '2026-04-24'::date),
+        (4, '2026-04-29'::date)
+    ) AS novas_datas(profissional_id, data_disponivel)
+    WHERE NOT EXISTS (
+      SELECT 1
+      FROM datas_disponiveis d
+      WHERE d.profissional_id = novas_datas.profissional_id
+        AND d.data_disponivel = novas_datas.data_disponivel
+    );
   `);
 
   console.log("Banco inicializado com sucesso.");
