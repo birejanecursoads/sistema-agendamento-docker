@@ -125,27 +125,21 @@ app.get("/api/profissionais/especialidade/:especialidade", async (req, res) => {
     res.status(500).json({ mensagem: "Erro ao filtrar profissionais." });
   }
 });
-
 app.get("/api/profissionais/:id/datas", async (req, res) => {
   try {
     const { id } = req.params;
 
     const result = await pool.query(
       `
-      SELECT d.data_disponivel
-      FROM datas_disponiveis d
-      WHERE d.profissional_id = $1
-      AND d.data_disponivel NOT IN (
-        SELECT a.data_agendamento
-        FROM agendamentos a
-        WHERE a.profissional_id = $1
-      )
-      ORDER BY d.data_disponivel
+      SELECT data_disponivel
+      FROM datas_disponiveis
+      WHERE profissional_id = $1
+      ORDER BY data_disponivel
       `,
       [id]
     );
 
-    res.json(result.rows.map((row) => row.data_disponivel));
+    res.json(result.rows.map(item => item.data_disponivel));
   } catch (error) {
     console.error(error);
     res.status(500).json({ mensagem: "Erro ao buscar datas disponíveis." });
