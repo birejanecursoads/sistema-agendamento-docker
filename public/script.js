@@ -119,7 +119,7 @@ btnConsultar.addEventListener("click", async () => {
     return;
   }
 
-  const resposta = await fetch(`/api/agendamentos/${cpf}`);
+  const resposta = await fetch(`/api/agendamentos/cpf/${cpf}`);
   const resultado = await resposta.json();
 
   if (!resposta.ok) {
@@ -134,11 +134,11 @@ btnConsultar.addEventListener("click", async () => {
     div.className = "resultado-item";
 
     div.innerHTML = `
-      <p><strong>Nome:</strong> ${agendamento.nome}</p>
+      <p><strong>Nome:</strong> ${agendamento.nome_paciente}</p>
       <p><strong>CPF:</strong> ${agendamento.cpf}</p>
       <p><strong>Especialidade:</strong> ${agendamento.especialidade}</p>
-      <p><strong>Profissional:</strong> ${agendamento.profissionalNome}</p>
-      <p><strong>Data:</strong> ${agendamento.data}</p>
+      <p><strong>Profissional:</strong> ${agendamento.profissional_nome}</p>
+      <p><strong>Data:</strong> ${agendamento.data_agendamento}</p>
       <button class="btn-cancelar" onclick="cancelarAgendamento(${agendamento.id})">Cancelar Agendamento</button>
     `;
 
